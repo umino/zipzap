@@ -87,9 +87,41 @@ namespace ZZDataProvider
 - (NSString*)stringWithBytes:(uint8_t*)bytes length:(NSUInteger)length
 {
 	// if EFS bit is set, use UTF-8; otherwise use fallback encoding
-	return [[NSString alloc] initWithBytes:bytes
+	NSString* value = [[NSString alloc] initWithBytes:bytes
 									length:length
 								  encoding:_centralFileHeader->generalPurposeBitFlag & (1 << 11) ? NSUTF8StringEncoding : _encoding];
+    
+    if (value) {return value;}
+
+    int encodings[] = {
+//        NSASCIIStringEncoding,
+//        NSNEXTSTEPStringEncoding,
+        NSJapaneseEUCStringEncoding,
+        NSUTF8StringEncoding,
+//        NSISOLatin1StringEncoding,
+        NSSymbolStringEncoding,
+        NSNonLossyASCIIStringEncoding,
+        NSShiftJISStringEncoding,
+        NSISOLatin2StringEncoding,
+        NSUnicodeStringEncoding,
+        NSWindowsCP1251StringEncoding,
+        NSWindowsCP1252StringEncoding,
+        NSWindowsCP1253StringEncoding,
+        NSWindowsCP1254StringEncoding,
+        NSWindowsCP1250StringEncoding,
+        NSISO2022JPStringEncoding,
+        NSMacOSRomanStringEncoding
+    };
+
+    size_t count = sizeof(encodings)/sizeof(int);
+    for(int i=0; i<count; ++i) {
+        value = [[NSString alloc] initWithBytes:bytes length:length encoding:encodings[i]];
+        if(value){
+            _encoding = encodings[i];
+            break;
+        }
+    }
+    return value;
 }
 
 - (BOOL)compressed
